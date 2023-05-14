@@ -1,11 +1,13 @@
 extern crate portaudio;
 
-use crate::params::{get_input_params, get_output_params};
+use std::collections::VecDeque;
+use std::time::Instant;
+
 use portaudio as pa;
 use portaudio::stream::Buffer;
 use portaudio::{Blocking, Duplex, PortAudio, Stream};
-use std::collections::VecDeque;
-use std::time::Instant;
+
+use crate::params::{get_input_params, get_output_params};
 
 const SAMPLE_RATE: f64 = 44_100.0;
 const CHANNELS: i32 = 1;

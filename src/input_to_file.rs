@@ -1,9 +1,11 @@
-use crate::params::get_input_params;
+use std::time::Instant;
+
 use hound::{WavSpec, WavWriter};
 use portaudio as pa;
-use portaudio::stream::{Available, Buffer};
+use portaudio::stream::Buffer;
 use portaudio::{Blocking, Error, Input, PortAudio, Stream, Time};
-use std::time::Instant;
+
+use crate::params::get_input_params;
 
 const SAMPLE_RATE: f64 = 44100.0;
 const FRAMES_PER_BUFFER: u32 = 1024;

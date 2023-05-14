@@ -1,6 +1,7 @@
-use crate::params::get_output_params;
 use hound::WavReader;
 use portaudio::{Error, OutputStreamSettings, PortAudio};
+
+use crate::params::get_output_params;
 
 const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES_PER_BUFFER: u32 = 1024;
