@@ -7,22 +7,15 @@ use portaudio as pa;
 use portaudio::stream::Buffer;
 use portaudio::{Blocking, Duplex, PortAudio, Stream};
 
-use crate::params::{get_input_params, get_output_params};
-
-const SAMPLE_RATE: f64 = 44_100.0;
-const CHANNELS: i32 = 1;
-const FRAMES: u32 = 256;
+use crate::params::{get_duplex_settings, CHANNELS, FRAMES};
 
 pub fn run() -> Result<(), pa::Error> {
     let pa = PortAudio::new()?;
 
-    let input_params = get_input_params(&pa);
-    let output_params = get_output_params(&pa);
-
     // Construct the settings with which we'll open our duplex stream.
-    let settings = pa::DuplexStreamSettings::new(input_params, output_params, SAMPLE_RATE, FRAMES);
+    let duplex_settings = get_duplex_settings(&pa);
 
-    let stream = pa.open_blocking_stream(settings)?;
+    let stream = pa.open_blocking_stream(duplex_settings)?;
 
     stream_loop(stream)
 }

@@ -1,34 +1,26 @@
 use std::time::Instant;
 
 use hound::{WavSpec, WavWriter};
-use portaudio as pa;
 use portaudio::stream::Buffer;
-use portaudio::{Blocking, Error, Input, PortAudio, Stream, Time};
+use portaudio::{Blocking, Error, Input, PortAudio, Stream};
 
-use crate::params::get_input_params;
-
-const SAMPLE_RATE: f64 = 44100.0;
-const FRAMES_PER_BUFFER: u32 = 1024;
-const OUTPUT_FILE: &str = "/Users/jaketoan/Downloads/jake.wav";
+use crate::params::{
+    get_input_settings, BITS_PER_SAMPLE, CHANNELS, FRAMES_PER_BUFFER, OUTPUT_FILE, SAMPLE_RATE,
+};
 
 pub fn run() -> Result<(), Error> {
     let portaudio = PortAudio::new().unwrap();
-    let input_params = get_input_params(&portaudio);
+    let input_settings = get_input_settings(&portaudio);
 
-    let mut stream: Stream<Blocking<Buffer>, Input<f32>> = portaudio
-        .open_blocking_stream(pa::InputStreamSettings::new(
-            input_params,
-            SAMPLE_RATE,
-            FRAMES_PER_BUFFER,
-        ))
-        .unwrap();
+    let mut stream: Stream<Blocking<Buffer>, Input<f32>> =
+        portaudio.open_blocking_stream(input_settings).unwrap();
 
     stream.start().unwrap();
 
     let spec = WavSpec {
-        channels: 1,
+        channels: CHANNELS as u16,
         sample_rate: SAMPLE_RATE as u32,
-        bits_per_sample: 32,
+        bits_per_sample: BITS_PER_SAMPLE,
         sample_format: hound::SampleFormat::Float,
     };
 
