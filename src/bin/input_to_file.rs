@@ -3,10 +3,13 @@ use std::time::Instant;
 use hound::{WavSpec, WavWriter};
 use portaudio::stream::Buffer;
 use portaudio::{Blocking, Error, Input, PortAudio, Stream};
-
-use crate::params::{
+use sounds_good::params::{
     get_input_settings, BITS_PER_SAMPLE, CHANNELS, FRAMES_PER_BUFFER, OUTPUT_FILE, SAMPLE_RATE,
 };
+
+fn main() -> Result<(), Error> {
+    run()
+}
 
 pub fn run() -> Result<(), Error> {
     let portaudio = PortAudio::new().unwrap();

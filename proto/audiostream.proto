@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package audiostream;
+
+message AudioChunk {
+  bytes data = 1; // Binary data for a chunk of audio
+}
+
+service AudioStreamer {
+  rpc UploadAudio(stream AudioChunk) returns (UploadStatus);
+  rpc DownloadAudio(AudioRequest) returns (stream AudioChunk);
+}
+
+message AudioRequest {}
+
+message UploadStatus {
+  string message = 1;
+}

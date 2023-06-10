@@ -3,13 +3,15 @@ extern crate portaudio;
 use std::collections::VecDeque;
 use std::time::Instant;
 
-use portaudio as pa;
 use portaudio::stream::Buffer;
-use portaudio::{Blocking, Duplex, PortAudio, Stream};
+use portaudio::{Blocking, Duplex, Error, PortAudio, Stream, StreamAvailable};
+use sounds_good::params::{get_duplex_settings, CHANNELS, FRAMES};
 
-use crate::params::{get_duplex_settings, CHANNELS, FRAMES};
+fn main() -> Result<(), Error> {
+    run()
+}
 
-pub fn run() -> Result<(), pa::Error> {
+pub fn run() -> Result<(), Error> {
     let pa = PortAudio::new()?;
 
     // Construct the settings with which we'll open our duplex stream.
@@ -22,7 +24,7 @@ pub fn run() -> Result<(), pa::Error> {
 
 fn stream_loop(
     mut stream: Stream<Blocking<(Buffer, Buffer)>, Duplex<f32, f32>>,
-) -> Result<(), pa::Error> {
+) -> Result<(), Error> {
     stream.start().unwrap();
 
     // We'll use this buffer to transfer samples from the input stream to the output stream.
@@ -78,14 +80,14 @@ fn stream_loop(
 // We'll use this function to wait for read/write availability.
 fn wait_for_stream<F>(f: F, name: &str) -> u32
 where
-    F: Fn() -> Result<pa::StreamAvailable, pa::error::Error>,
+    F: Fn() -> Result<StreamAvailable, Error>,
 {
     loop {
         match f() {
             Ok(available) => match available {
-                pa::StreamAvailable::Frames(frames) => return frames as u32,
-                pa::StreamAvailable::InputOverflowed => println!("Input stream has overflowed"),
-                pa::StreamAvailable::OutputUnderflowed => {
+                StreamAvailable::Frames(frames) => return frames as u32,
+                StreamAvailable::InputOverflowed => println!("Input stream has overflowed"),
+                StreamAvailable::OutputUnderflowed => {
                     println!("Output stream has underflowed")
                 }
             },

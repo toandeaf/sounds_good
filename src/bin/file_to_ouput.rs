@@ -1,7 +1,10 @@
 use hound::WavReader;
 use portaudio::{Error, PortAudio};
+use sounds_good::params::{get_output_settings, FRAMES_PER_BUFFER, OUTPUT_FILE};
 
-use crate::params::{get_output_settings, FRAMES_PER_BUFFER, OUTPUT_FILE};
+fn main() -> Result<(), Error> {
+    run()
+}
 
 pub fn run() -> Result<(), Error> {
     let portaudio = PortAudio::new().unwrap();

@@ -8,7 +8,7 @@ pub const FRAMES: u32 = 256;
 pub const SAMPLE_RATE: f64 = 48000.0;
 pub const FRAMES_PER_BUFFER: u32 = 1024;
 pub const BITS_PER_SAMPLE: u16 = 32;
-pub const OUTPUT_FILE: &str = "/Users/jaketoan/Downloads/test.wav";
+pub const OUTPUT_FILE: &str = "/Users/jaketoan/Downloads/jake.wav";
 pub const CHANNELS: i32 = 1;
 
 fn get_input_params(pa: &PortAudio) -> StreamParameters<f32> {

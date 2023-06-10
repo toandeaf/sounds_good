@@ -6,9 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+chatgpt_rs = "1.1.6"
+futures = "0.3.28"
 hound = "3.5.0"
 portaudio = "0.7.0"
+prost = "0.11.9"
 rodio = "0.17.1"
+tokio = { version = "1.28.2", features = [ "rt-multi-thread", "rt"] }
+tokio-stream = "0.1.14"
+tonic = "0.9.2"
 
 [build-dependencies]
 portaudio = "0.7.0"
+tonic-build = "0.9.2"
