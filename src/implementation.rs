@@ -1,6 +1,7 @@
 use std::pin::Pin;
 
-use hound::WavReader;
+use portaudio::stream::CallbackResult;
+use portaudio::PortAudio;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tokio_stream::Stream;
@@ -8,7 +9,7 @@ use tonic::{Request, Response, Status, Streaming};
 
 use crate::audiostream::audio_streamer_server::AudioStreamer;
 use crate::audiostream::{AudioChunk, AudioRequest, UploadStatus};
-use crate::params::OUTPUT_FILE;
+use crate::params::get_input_settings;
 
 #[derive(Default)]
 pub struct AudioStreamHandler;
@@ -46,16 +47,37 @@ impl AudioStreamer for AudioStreamHandler {
 
         let (sender, receiver) = mpsc::channel(128);
 
-        let mut reader = WavReader::open(OUTPUT_FILE).unwrap();
+        let pa = PortAudio::new().unwrap();
+        let input_settings = get_input_settings(&pa);
+
+        let mut stream = pa
+            .open_non_blocking_stream(input_settings, move |data| {
+                let mut callback_result: CallbackResult = CallbackResult::Continue;
+                for sample in data.buffer.iter() {
+                    let small_bytes = sample.to_ne_bytes();
+                    let result = sender.try_send(Result::<AudioChunk, Status>::Ok(AudioChunk {
+                        data: small_bytes.to_vec(),
+                    }));
+
+                    callback_result = match result {
+                        Ok(_) => CallbackResult::Continue,
+                        Err(_) => CallbackResult::Abort,
+                    };
+                    match callback_result {
+                        CallbackResult::Abort => break,
+                        _ => {}
+                    };
+                }
+
+                callback_result
+            })
+            .unwrap();
+
+        stream.start().unwrap();
 
         tokio::spawn(async move {
-            for sample in reader.samples::<f32>() {
-                let dad = sample.unwrap().to_ne_bytes();
-                let _result = sender
-                    .send(Result::<AudioChunk, Status>::Ok(AudioChunk {
-                        data: dad.to_vec(),
-                    }))
-                    .await;
+            while stream.is_active().unwrap() {
+                tokio::task::yield_now().await;
             }
             println!("\tclient disconnected");
         });
