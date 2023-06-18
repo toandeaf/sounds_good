@@ -49,19 +49,29 @@ impl AudioStreamer for AudioStreamHandler {
 
         let pa = PortAudio::new().unwrap();
         let input_settings = get_input_settings(&pa);
+        let output_stream = ReceiverStream::new(receiver);
 
         let mut stream = pa
             .open_non_blocking_stream(input_settings, move |data| {
+                let mut overall_result: CallbackResult = CallbackResult::Continue;
                 for sample in data.buffer.iter() {
                     // TODO Why in the name of christ does this callback only invoke if i have this here lmao
-                    println!("Am i losing it?");
+                    // println!("Am i losing it?");
 
                     let small_bytes = sample.to_ne_bytes();
-                    let _result = sender.try_send(Result::<AudioChunk, Status>::Ok(AudioChunk {
-                        data: small_bytes.to_vec(),
-                    }));
+                    let result =
+                        sender.blocking_send(Result::<AudioChunk, Status>::Ok(AudioChunk {
+                            data: small_bytes.to_vec(),
+                        }));
+                    match result {
+                        Ok(_) => CallbackResult::Continue,
+                        Err(e) => {
+                            overall_result = CallbackResult::Abort;
+                            break;
+                        }
+                    };
                 }
-                CallbackResult::Continue
+                overall_result
             })
             .unwrap();
 
@@ -69,12 +79,10 @@ impl AudioStreamer for AudioStreamHandler {
 
         tokio::spawn(async move {
             while stream.is_active().unwrap() {
-                // tokio::task::yield_now().await;
+                tokio::task::yield_now().await;
             }
             println!("\tclient disconnected");
         });
-
-        let output_stream = ReceiverStream::new(receiver);
 
         Ok(Response::new(
             Box::pin(output_stream) as Self::DownloadAudioStream
