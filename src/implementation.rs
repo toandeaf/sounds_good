@@ -52,24 +52,16 @@ impl AudioStreamer for AudioStreamHandler {
 
         let mut stream = pa
             .open_non_blocking_stream(input_settings, move |data| {
-                let mut callback_result: CallbackResult = CallbackResult::Continue;
                 for sample in data.buffer.iter() {
+                    // TODO Why in the name of christ does this callback only invoke if i have this here lmao
+                    println!("Am i losing it?");
+
                     let small_bytes = sample.to_ne_bytes();
-                    let result = sender.try_send(Result::<AudioChunk, Status>::Ok(AudioChunk {
+                    let _result = sender.try_send(Result::<AudioChunk, Status>::Ok(AudioChunk {
                         data: small_bytes.to_vec(),
                     }));
-
-                    callback_result = match result {
-                        Ok(_) => CallbackResult::Continue,
-                        Err(_) => CallbackResult::Abort,
-                    };
-                    match callback_result {
-                        CallbackResult::Abort => break,
-                        _ => {}
-                    };
                 }
-
-                callback_result
+                CallbackResult::Continue
             })
             .unwrap();
 
@@ -77,7 +69,7 @@ impl AudioStreamer for AudioStreamHandler {
 
         tokio::spawn(async move {
             while stream.is_active().unwrap() {
-                tokio::task::yield_now().await;
+                // tokio::task::yield_now().await;
             }
             println!("\tclient disconnected");
         });
